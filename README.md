@@ -53,78 +53,13 @@ npm install -D @types/node
 💡 allure-commandline lets you generate and serve reports locally.
 
 ### 2 - Configure TypeScript
-Create tsconfig.json:
-```
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["DOM", "ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "include": ["src/**/*", "playwright.config.ts"],
-  "exclude": ["node_modules"]
-}
-```
+Create tsconfig.json
 
 ### 3 - Environment Configuration
-Create .env:
-```
-BASE_URL=https://reqres.in
-UI_BASE_URL=https://example.com
-```
-Add .env to .gitignore
-
-Create src/config/env.ts:
-```
-import * as dotenv from 'dotenv';
-dotenv.config();
-
-export const config = {
-  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
-  uiBaseUrl: process.env.UI_BASE_URL || 'http://localhost:4200',
-};
-```
+Create .env
 
 ### 4 - Playwright Configuration with Allure
-Create src/config/playwright.config.ts (and optionally symlink or copy to root):
-```
-import { defineConfig } from '@playwright/test';
-
-export default defineConfig({
-  testDir: './src/tests',
-  timeout: 30 * 1000,
-  expect: {
-    timeout: 5000,
-  },
-  reporter: [
-    ['list'],
-    ['allure-playwright', { outputFolder: 'allure-results', detail: true }],
-  ],
-  use: {
-    baseURL: process.env.UI_BASE_URL || 'http://localhost:4200',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    // Add firefox, webkit if needed
-  ],
-});
+Create src/config/playwright.config.ts (and optionally symlink or copy to root)
 ```
 💡 You can symlink it to root for convenience: 
 ```
@@ -132,146 +67,20 @@ bash
 ln -s src/config/playwright.config.ts playwright.config.ts
 ```
 ### 5 - Allure Report Configuration (Optional)
-Create allure.config.js (optional for customizing report name, logo, etc.):
-```
-module.exports = {
-  reportName: 'Playwright API & UI Test Report',
-  resultsDir: './allure-results',
-  reportDir: './allure-report',
-};
-```
+Create allure.config.js (optional for customizing report name, logo, etc.)
+
 ### 6 - Create Utility for API Testing
-Create src/tests/utils/apiClient.ts:
-```
-import { APIRequestContext } from '@playwright/test';
-import { config } from '../../config/env';
+Create src/tests/utils/apiClient.ts
 
-export class ApiClient {
-  private request: APIRequestContext;
-
-  constructor(request: APIRequestContext) {
-    this.request = request;
-  }
-
-  async get<T>(endpoint: string): Promise<T> {
-    const response = await this.request.get(`${config.baseUrl}${endpoint}`);
-    return await response.json();
-  }
-
-  async post<T>(endpoint: string, body: any): Promise<T> {
-    const response = await this.request.post(`${config.baseUrl}${endpoint}`, {
-      data: body,
-    });
-    return await response.json();
-  }
-
-  // Add put, delete as needed
-}
-```
 ### 7 - Page Object for UI Testing
-```
-import { Page } from '@playwright/test';
-
-export class LoginPage {
-  readonly page: Page;
-
-  constructor(page: Page) {
-    this.page = page;
-  }
-
-  async goto() {
-    await this.page.goto('/login');
-  }
-
-  async login(username: string, password: string) {
-    await this.page.fill('input[name="username"]', username);
-    await this.page.fill('input[name="password"]', password);
-    await this.page.click('button[type="submit"]');
-  }
-
-  async getErrorMessage() {
-    return await this.page.textContent('.error');
-  }
-}
-```
 
 ### 8 - Write Test Specs
 **API Test:** src/tests/api/user.api.spec.ts
-```
-import { test, expect } from '@playwright/test';
-import { ApiClient } from '../utils/apiClient';
-
-test.describe('User API Tests', () => {
-  let apiClient: ApiClient;
-
-  test.beforeEach(async ({ request }) => {
-    apiClient = new ApiClient(request);
-  });
-
-  test('should get list of users', async () => {
-    const response = await apiClient.get('/api/users?page=2');
-    expect(response).toHaveProperty('data');
-    expect(Array.isArray(response.data)).toBeTruthy();
-  });
-
-  test('should create a new user', async () => {
-    const newUser = { name: 'John', job: 'Engineer' };
-    const response = await apiClient.post('/api/users', newUser);
-    expect(response.name).toBe('John');
-    expect(response.job).toBe('Engineer');
-  });
-});
-```
 **UI Test:** src/tests/ui/login.ui.spec.ts
-```
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../../pages/LoginPage';
 
-test.describe('Login Page Tests', () => {
-  test('should login successfully', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('validuser', 'validpass');
-
-    await expect(page).toHaveURL('/dashboard');
-  });
-
-  test('should show error for invalid credentials', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login('invalid', 'invalid');
-
-    const errorMsg = await loginPage.getErrorMessage();
-    expect(errorMsg).toContain('Invalid credentials');
-  });
-});
-```
-
-### 9 - Add Scripts to package.json
-```
-{
-  "scripts": {
-    "test": "npx playwright test",
-    "test:ui": "npx playwright test src/tests/ui",
-    "test:api": "npx playwright test src/tests/api",
-    "report": "npx allure generate allure-results --clean && npx allure open",
-    "lint": "npx eslint . --ext .ts",
-    "format": "npx prettier --write ."
-  }
-}
-```
+### 9 - Add "scripts" to package.json
 
 ### 10 - Create .gitignore
-```
-node_modules/
-dist/
-allure-results/
-allure-report/
-reports/
-.env
-.DS_Store
-*.log
-```
 
 ### 11 - Run Tests & Generate Allure Report
 ```
