@@ -60,10 +60,9 @@ Create .env
 
 ### 4 - Playwright Configuration with Allure
 Create src/config/playwright.config.ts (and optionally symlink or copy to root)
-```
 💡 You can symlink it to root for convenience: 
 ```
-bash
+bash  
 ln -s src/config/playwright.config.ts playwright.config.ts
 ```
 ### 5 - Allure Report Configuration (Optional)
