@@ -74,7 +74,7 @@ Create src/tests/utils/apiClient.ts
 ### 7 - Page Object for UI Testing
 
 ### 8 - Write Test Specs
-**API Test:** src/tests/api/user.api.spec.ts
+**API Test:** src/tests/api/user.api.spec.ts  
 **UI Test:** src/tests/ui/login.ui.spec.ts
 
 ### 9 - Add "scripts" to package.json
