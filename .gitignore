@@ -8,6 +8,11 @@ lerna-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+allure-results/
+allure-report/
+reports/
+test-results/
+.DS_Store
 
 # Runtime data
 pids
